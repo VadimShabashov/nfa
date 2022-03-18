@@ -63,15 +63,15 @@ def minimize(automata: Automata):
 
     dfa.states = new_states
     new_final_states = []
-    dfa.initial_state = str(classes_of_eq.find(dfa.initial_state))
+    dfa.initial_state = ",".join(classes_of_eq.find(dfa.initial_state))
 
     for s in classes_of_eq.get():
         for item in s:
             if item in dfa.terminal_states:
-                new_final_states.append(str(classes_of_eq.find(item)))
+                new_final_states.append(",".join(classes_of_eq.find(item)))
                 break
 
-    new_transitons = {(str(classes_of_eq.find(k[0])), k[1]): str(classes_of_eq.find(v))
+    new_transitons = {(",".join(classes_of_eq.find(k[0])), k[1]): ",".join(classes_of_eq.find(v))
                       for k, v in transitions.items()}
     new_edges = {}
     for k, v in new_transitons.items():
@@ -79,8 +79,12 @@ def minimize(automata: Automata):
             new_edges[k[0]] = [[v, k[1]]]
         else:
             new_edges[k[0]].append([v, k[1]])
+
     dfa.edges = new_edges
+
+    new_final_states = ["".join(i) for i in new_final_states]
     dfa.terminal_states = new_final_states
+
     return dfa
 
 
