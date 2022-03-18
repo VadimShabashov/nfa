@@ -1,6 +1,9 @@
 import sys
 import json
 from reader.reader import read
+from check_word.check_word import check
+from minimize.minimize import minimize
+from transform.transform import transform
 from writer.writer import write
 from data_validation.data_validation import check_automata
 from visualization.visualization import visualize
