@@ -44,6 +44,7 @@ def execute_command(automata, command, *args):
             if command == "minimize":
                 if automata.is_dfa:
                     automata = minimize(automata)
+                    print("Minimized automata successfully")
                 else:
                     print(f"Can't minimize NFA. Please, transform it first to the DFA.")
             elif command == "transform":
