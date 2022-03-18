@@ -1,6 +1,6 @@
-from src.main import NFA
+from src.automata import Automata
 
 
-def transform(automata: NFA):
+def transform(automata: Automata):
     # todo implement function
     pass

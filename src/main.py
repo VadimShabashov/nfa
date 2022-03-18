@@ -3,21 +3,11 @@ import json
 from reader.reader import read
 from check_word.check_word import check
 from minimize.minimize import minimize
+from src.automata import Automata
 from transform.transform import transform
 from writer.writer import write
 from data_validation.data_validation import check_automata
 from visualization.visualization import visualize
-
-
-class NFA:
-    def __init__(self, data):
-        self.glossary = data["glossary"]
-        self.states = data["states"]
-        self.initial_state = data["initial_state"]
-        self.terminal_states = data["terminal_states"]
-        self.edges = data["edges"]
-        self.edges_epsilon = data["edges_epsilon"]
-        self.is_dfa = data["is_dfa"]
 
 
 def check_args(args):
@@ -40,7 +30,7 @@ def execute_command(automata, command, *args):
                     data = read(*args)
                     data_status = check_automata(data)
                     if not data_status:
-                        automata = NFA(data)
+                        automata = Automata(data)
                         print("Read automata successfully")
                     else:
                         print("Following problems in data were found:\n" + data_status)
