@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from src.visualization.edge_labels import modified_draw_networkx_edge_labels
 
 
@@ -56,5 +57,14 @@ def visualize(automata):
 
     # Модифицированная функция добавления названий к искривленным дугам.
     modified_draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_names, rad=rad)
+
+    # Легенда
+    legend_elements = [Line2D([0], [0], marker='o', color='green', label='Желтый - начальное состояние',
+                              markerfacecolor='yellow', markersize=13),
+                       Line2D([0], [0], marker='o', color='green', label='Красный - терминальное состояние',
+                              markerfacecolor='red', markersize=13),
+                       Line2D([0], [0], marker='o', color='green', label='Розовый - остальные состояния',
+                              markerfacecolor='magenta', markersize=13)]
+    plt.legend(handles=legend_elements)
 
     plt.show()
