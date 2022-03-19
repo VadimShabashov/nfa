@@ -49,6 +49,7 @@ def execute_command(automata, command, *args):
                     print(f"Can't minimize NFA. Please, transform it first to the DFA.")
             elif command == "transform":
                 automata = transform(automata)
+                print("Transformed automata successfully")
             elif command == "visualize":
                 visualize(automata)
             elif command == "check":
