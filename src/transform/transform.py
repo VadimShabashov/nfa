@@ -6,17 +6,17 @@ from src.automata import Automata
 
 def transform(automata: Automata) -> Automata:
     without_epsilon = __remove_epsilon_edges(automata)
-    new_sigma: Dict[FrozenSet[str], List[Tuple[FrozenSet[str], str]]] = {}
-    new_states: Set[FrozenSet[str]] = set([
+    raw_new_sigma: Dict[FrozenSet[str], List[Tuple[FrozenSet[str], str]]] = {}
+    raw_new_states: Set[FrozenSet[str]] = set([
         frozenset([without_epsilon.initial_state])
     ])
-    new_terminals: Set[FrozenSet[str]] = set()
+    raw_new_terminals: Set[FrozenSet[str]] = set()
     queue = deque([frozenset(without_epsilon.initial_state)])
 
     while len(queue) > 0:
         s = queue.popleft()
-        if s not in new_sigma:
-            new_sigma[s] = []
+        if s not in raw_new_sigma:
+            raw_new_sigma[s] = []
 
         for char in without_epsilon.glossary:
             new_state = []
@@ -32,44 +32,33 @@ def transform(automata: Automata) -> Automata:
 
             if len(new_state) > 0:
                 new_state = frozenset(new_state)
-                new_sigma[s].append((new_state, char))
+                raw_new_sigma[s].append((new_state, char))
 
                 if terminal:
-                    new_terminals.add(s)
+                    raw_new_terminals.add(s)
 
-                if new_state not in new_states:
-                    new_states.add(new_state)
+                if new_state not in raw_new_states:
+                    raw_new_states.add(new_state)
                     queue.append(new_state)
+
+    new_states = [__fs_to_str(s) for s in raw_new_states]
 
     return Automata({
         'glossary': without_epsilon.glossary,
-        'states': [__fs_to_str(s) for s in new_states],
+        'states': new_states,
         'initial_state': without_epsilon.initial_state,
-        'terminal_states': [__fs_to_str(s) for s in new_terminals],
+        'terminal_states': [__fs_to_str(s) for s in raw_new_terminals],
         'is_dfa': True,
-        'edges': __create_new_edges(new_sigma),
-        'edges_epsilon': {}
+        'edges': {
+            __fs_to_str(k): [[__fs_to_str(p[0]), p[1]]for p in v]
+            for (k, v) in raw_new_sigma.items()
+        },
+        'edges_epsilon': {state: [] for state in new_states}
     })
 
 
-def __create_new_edges(
-    raw_data: Dict[FrozenSet[str], List[Tuple[FrozenSet[str], str]]]
-) -> Dict[str, List[List[str]]]:
-    result = {}
-
-    for (k, v) in raw_data.items():
-        result[__fs_to_str(k)] = [[__fs_to_str(p[0]), p[1]] for p in v]
-
-    return result
-
-
 def __fs_to_str(fs: FrozenSet[str]) -> str:
-    result = ""
-
-    for e in fs:
-        result += e + "-"
-
-    return result[:-1]
+    return "".join([str(e) + "-" for e in fs])[:-1]
 
 
 def __get_achievable_states(a: Automata) -> List[str]:
@@ -115,12 +104,9 @@ def __remove_epsilon_edges(a: Automata) -> Automata:
         'initial_state': a.initial_state,
         'terminal_states': [s for s in a.terminal_states if s in achievable],
         'is_dfa': a.is_dfa,
-        'edges': {},
+        'edges': {s: [] for s in achievable},
         'edges_epsilon': {}
     }
-
-    for s in pre_automata['states']:
-        pre_automata['edges'][s] = []
 
     for from_s in pre_automata['states']:
         for to_s in pre_automata['states']:

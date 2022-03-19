@@ -21,7 +21,10 @@ class TestTransform(unittest.TestCase):
     def test_transform(self):
         dfa_ = transform(self.nfa)
         self.assertTrue(dfa_.is_dfa)
-        self.assertEqual(0, len(dfa_.edges_epsilon))
+
+        for v in dfa_.edges_epsilon.values():
+            self.assertEqual(0, len(v))
+
         self.assertEqual(['C', 'E'], sorted(dfa_.states))
         self.assertEqual(['C'], dfa_.terminal_states)
         self.assertTrue(['E', '1'] in dfa_.edges['C'])
