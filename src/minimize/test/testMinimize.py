@@ -11,10 +11,10 @@ class TestMinimize(unittest.TestCase):
 
     def test_minimize(self):
         self.assertEqual('A,D,E', self.minDFA.initial_state)
-        self.assertEqual(['A,D,E', 'B,C'], self.minDFA.states)
+        self.assertEqual(['A,D,E', 'B,C'], sorted(self.minDFA.states))
         self.assertEqual(self.dfa.edges_epsilon, self.minDFA.edges_epsilon)
         self.assertEqual(self.dfa.glossary, self.minDFA.glossary)
         self.assertEqual({'A,D,E': [['B,C', '1'], ['B,C', '0']], 'B,C': [['A,D,E', '1']]},
                          self.minDFA.edges)
         self.assertTrue(self.minDFA.is_dfa)
-        self.assertEqual(['B,C'], self.minDFA.terminal_states)
+        self.assertEqual(['B,C'], sorted(self.minDFA.terminal_states))
