@@ -8,7 +8,7 @@ from src.transform.diff import diff
 from src.transform.intersect_or_union import intersect_or_union
 from transform.transform import transform
 from writer.writer import write
-from data_validation.data_validation import check_automata
+from data_validation.data_validation import validate
 from visualization.visualization import visualize
 
 
@@ -25,7 +25,7 @@ def read_automata(args, default_automata):
     if check_args(args):
         try:
             data = read(*args)
-            data_status = check_automata(data)
+            data_status = validate(data)
             if not data_status:
                 automata = Automata(data)
                 print("Read automata successfully")

@@ -6,7 +6,7 @@ from src.minimize.minimize import minimize
 
 class TestMinimize(unittest.TestCase):
     def setUp(self):
-        self.dfa = Automata(automata_reader.read('src/examples/dfa1.txt'))
+        self.dfa = Automata(automata_reader.read('src/examples/dfa1.json'))
         self.minDFA = minimize(self.dfa)
 
     def test_minimize(self):

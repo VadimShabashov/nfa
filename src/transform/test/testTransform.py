@@ -8,8 +8,8 @@ from src.transform.transform import \
 
 class TestTransform(unittest.TestCase):
     def setUp(self) -> None:
-        self.nfa = Automata(automataReader.read('src/examples/nfa1.txt'))
-        self.dfa = Automata(automataReader.read('src/examples/dfa1.txt'))
+        self.nfa = Automata(automataReader.read('src/examples/nfa1.json'))
+        self.dfa = Automata(automataReader.read('src/examples/dfa1.json'))
 
     def test_achievable_states(self):
         self.assertEqual(['C', 'E'], sorted(get_achievable_states(self.nfa)))

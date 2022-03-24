@@ -1,94 +1,179 @@
-def check_duplicates(lst):
-    set_lst = set()
-    set_duplicates = set()
-    for item in lst:
-        if item in set_lst:
-            set_duplicates.add(item)
+from functools import reduce
+from typing import Dict, Any, Set
+from src.data_validation.single_automata_validator import automata_validator
+from src.data_validation.types.Result import Result
+from src.data_validation.types.Validator import \
+    Validator, all_of, combine_results, sequential
+
+KEYWORDS = {'union', 'concat', 'diff', 'intersect', 'star'}
+
+
+def __dependency_graph(data: Dict[str, Any]) -> Dict[str, Set[str]]:
+    '''
+    Строит граф зависимостей по файлу с автоматами
+    '''
+    g = {name: set() for name in data.keys()}
+
+    for name, value in data.items():
+        if isinstance(value, list):
+            for e in value:
+                if isinstance(e, str) and e not in KEYWORDS:
+                    g[name].add(e)
+
+    return g
+
+
+def __has_cyclic_dependency(
+    from_: str,
+    visited: Set[str],
+    g: Dict[str, Set[str]]
+) -> bool:
+    '''
+    Реализация DFS проверяющая наличие циклов в графе
+    '''
+    visited.add(from_)
+
+    for n in g[from_]:
+        if n in visited:
+            return True
         else:
-            set_lst.add(item)
+            return __has_cyclic_dependency(n, visited, g)
 
-    return set_duplicates, set_lst
-
-
-def check_keys_match(test_set, correct_set):
-    extra_fields = test_set.difference(correct_set)
-    required_fields = correct_set.difference(test_set)
-    return extra_fields, required_fields
+    return False
 
 
-def check_keys_subset(test_set, correct_set):
-    diff_set = test_set.difference(correct_set)
-    return diff_set
+def __all_explicitly_specified_automata_validator() \
+        -> Validator[Dict[str, Any]]:
+    '''
+    Проверяет все автоматы, которые объявлены в файле явно
+    (не через набор операций)
+    '''
+    def inner(data: Dict[str, Any]) -> Result[None, str]:
+        automata_list = []
+
+        for value in data.values():
+            if isinstance(value, dict):
+                automata_list.append(value)
+            elif isinstance(value, list):
+                for e in value:
+                    if isinstance(value, dict):
+                        automata_list.append(value)
+
+        return reduce(
+            combine_results,
+            [automata_validator().validate(a) for a in automata_list],
+            Result.ok(None)
+        )
+
+    return Validator(inner)
 
 
-def check_automata(data):
-    status = []
+def __all_names_valid_validator() -> Validator[Dict[str, Any]]:
+    '''
+    Проверяет, что все использованные имена
+    либо являются зарезервированными словами для операций
+    либо именами объявленных в файле автоматов
+    '''
+    def inner(data: Dict[str, Any]) -> Result[None, str]:
+        errors = []
+        automata_names = data.keys()
 
-    # Проверка общих полей в данных
-    correct_keys = {"glossary", "states", "initial_state", "terminal_states", "is_dfa", "edges", "edges_epsilon"}
-    extra_keys, required_keys = check_keys_match(set(data.keys()), correct_keys)
-    if extra_keys or required_keys:
-        return f"Wrong fields in data: unknown fields {extra_keys}, missing fields {required_keys}"
+        for name, value in data.items():
+            if name in KEYWORDS:
+                return errors.append(f'Automata name cannot be in ${KEYWORDS}')
 
-    # Проверка всех состояний
-    states_duplicates, states = check_duplicates(data["states"])
-    if states_duplicates:
-        status.append(f"Duplication of states for {states_duplicates}")
+            if isinstance(value, list):
+                for e in value:
+                    if isinstance(e, str):
+                        if e not in automata_names and e not in KEYWORDS:
+                            errors.append(f'Name {e} not presented in file')
 
-    # Проверка, начального состояния
-    if data["initial_state"] not in states:
-        status.append(f"Initial state {data['initial_state']} is not in states")
+        return Validator.combine_log(errors)
 
-    # Проверка терминальных состояний
-    terminal_states_duplicates, terminal_states = check_duplicates(data["terminal_states"])
-    if terminal_states_duplicates:
-        status.append(f"Duplication of terminal states for {terminal_states_duplicates}")
-    diff_terminal_states = check_keys_subset(terminal_states, states)
-    if diff_terminal_states:
-        status.append(f"States {diff_terminal_states} of terminal states are not in states")
+    return Validator(inner)
 
-    # Проверка словаря
-    glossary_duplicates, glossary = check_duplicates(data["glossary"])
-    if glossary_duplicates:
-        status.append(f"Duplication of symbols in glossary for {glossary_duplicates}")
 
-    # Проверка НЕ эпсилон ребер
-    extra_keys_edges, required_keys_edges = check_keys_match(set(data["edges"].keys()), states)
-    if extra_keys_edges or required_keys_edges:
-        status.append(f"Set of edges keys doesn't equal set of states: "
-                      f"unknown fields {extra_keys_edges}, missing fields {required_keys_edges}")
-    for start_state, edges in data["edges"].items():
-        set_edges = set()
-        set_symbols = set()
-        for end_state, edge in edges:
-            if end_state not in states:
-                status.append(f"State {end_state} in edges (for {start_state}: ({end_state}, {edge})) is not in states")
-            if edge not in glossary:
-                status.append(f"Edge {edge} in edges (for {start_state}: ({end_state}, {edge})) is not in glossary")
-            if (end_state, edge) in set_edges:
-                status.append(f"Duplication of edge {start_state}: ({end_state}, {edge}) in edges")
-            else:
-                set_edges.add((end_state, edge))
-            if data["is_dfa"] and (edge in set_symbols):
-                status.append(f"Multiple edges '{edge}' were specified for {start_state} in DFA.")
-            else:
-                set_symbols.add(edge)
+def __string_tokens_in_correct_sequence_validator() \
+        -> Validator[Dict[str, Any]]:
+    '''
+    Проверяет последовательность всех строковых токенов в файле.
+    Запрещает последовательно идущие операции или автоматы.
+    Запрещает операции в начале или конце последовательности
+    '''
+    def inner(data: Dict[str, Any]) -> Result[None, str]:
+        errors = []
+        automata_names = data.keys()
 
-    # Проверка эпсилон ребер
-    extra_keys_epsilon_edges, required_keys_epsilon_edges = check_keys_match(set(data["edges_epsilon"].keys()), states)
-    if extra_keys_epsilon_edges or required_keys_epsilon_edges:
-        status.append(f"Set of epsilon edges keys doesn't equal set of states: "
-                      f"unknown keys {extra_keys_epsilon_edges}, missing keys {required_keys_epsilon_edges}")
-    for start_state, edges in data["edges_epsilon"].items():
-        if data["is_dfa"] and edges:
-            status.append(f"Epsilon edges can not be specified for DFA.")
-            break
-        else:
-            edges_duplicate, set_edges = check_duplicates(edges)
-            if edges_duplicate:
-                status.append(f"Duplication of epsilon edges for {start_state}: {edges_duplicate}")
-            diff_epsilon_edges = check_keys_subset(set_edges, states)
-            if diff_epsilon_edges:
-                status.append(f"States {diff_epsilon_edges} for {start_state} in epsilon edges are not in states")
+        for value in data.values():
+            if isinstance(value, list):
+                if isinstance(value[0], str) and value[0] in KEYWORDS:
+                    errors.append(f'Sequence cannot starts with {value[0]}')
 
-    return "\n".join(status)
+                if isinstance(value[-1], str) and value[-1] in KEYWORDS:
+                    errors.append(f'Sequence cannot ends with {value[0]}')
+
+                for idx in range(len(value) - 1):
+                    if (
+                        isinstance(value[idx], str)
+                        and isinstance(value[idx + 1], str)
+                        and ((
+                                value[idx] in KEYWORDS
+                                and value[idx + 1] in KEYWORDS
+                            )
+                            or (
+                                value[idx] in automata_names
+                                and value[idx + 1] in automata_names
+                        ))
+                    ):
+                        errors.append(
+                            f'{value[idx]} and {value[idx + 1]} '
+                            'cannot follow in sequence'
+                        )
+
+        return Validator.combine_log(errors)
+
+    return Validator(inner)
+
+
+def __no_cyclic_dependencies_validator() -> Validator[Dict[str, any]]:
+    '''
+    Проверяет отсутствие циклических зависимостей между автоматами
+    '''
+    def inner(data: Dict[str, Any]) -> Result[None, str]:
+        g = __dependency_graph(data)
+        visited = set()
+
+        for v in g.keys():
+            if v not in visited:
+                r = __has_cyclic_dependency(v, visited, g)
+
+                if r:
+                    return Result.error('Cyclic dependency found')
+
+        return Result.ok(None)
+
+    return Validator(inner)
+
+
+def __automata_object_validator() -> Validator[Dict[str, Any]]:
+    '''
+    Проверяет валидность всего объекта с автоматами
+    '''
+    return sequential([
+        all_of([
+            __all_explicitly_specified_automata_validator(),
+            __all_names_valid_validator(),
+            __string_tokens_in_correct_sequence_validator()
+        ]),
+        __no_cyclic_dependencies_validator()
+    ])
+
+
+def validate(data: Dict[str, Any]) -> None | str:
+    '''
+    Запускает валидации на полученном объекте
+    и возвращает None или сообщение об ошибке
+    '''
+    r = __automata_object_validator().validate(data)
+
+    return None if r.is_ok() else r.get_error()
