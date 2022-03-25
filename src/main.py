@@ -61,7 +61,10 @@ def execute_command(automata, command, *args):
                 visualize(automata)
             elif command == "check":
                 if check_args(args):
-                    check(automata, *args)
+                    if check(automata, *args):
+                        print("Word is correct")
+                    else:
+                        print("Word is incorrect")
             elif command == "union":
                 if check_args(args):
                     with_automata = read_automata(args, automata)

@@ -2,7 +2,7 @@ import itertools
 
 from src.automata import Automata
 from src.minimize.minimize import minimize
-from transform import transform
+from src.transform.transform import transform
 
 
 def intersect_or_union(left: Automata, right: Automata, union: bool = False) -> Automata:
@@ -36,7 +36,7 @@ def intersect_or_union(left: Automata, right: Automata, union: bool = False) -> 
         'states': states,
         'initial_state': left.initial_state + right.initial_state,
         'terminal_states': terminal_states,
-        'is_dfa': False,
+        'is_dfa': True,
         'edges': edges,
         'edges_epsilon': {}
     }))

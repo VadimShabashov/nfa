@@ -2,7 +2,7 @@ from src.automata import Automata
 from src.transform.transform import transform
 
 
-def check(automata: Automata, word):
+def check(automata: Automata, word) -> bool:
     # для проверки слова будем использовать детерменированный автомат
     # если дали недетерменированный, сделаем трансформацию
     dfa = transform(automata) if not automata.is_dfa else automata
@@ -17,9 +17,9 @@ def check(automata: Automata, word):
                 found = True
         if not found:
             print("Word is incorrect")
-            return
+            return False
 
     if state in dfa.terminal_states:
-        print("Word is correct")
+        return True
     else:
-        print("Word is incorrect")
+        return False
