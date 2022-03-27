@@ -1,6 +1,5 @@
 from src.automata import Automata
-from src.transform.diff import diff
-from src.transform.intersect_or_union import intersect_or_union
+from src.transform.transform import intersect_or_union, diff, star, concat
 
 
 def apply_operations(dict_automata, automata_name, pipeline):

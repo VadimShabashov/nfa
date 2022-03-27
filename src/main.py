@@ -1,13 +1,13 @@
 import json
-from reader.reader import read
-from check_word.check_word import check
-from minimize.minimize import minimize
-from automata import Automata
-from transform.transform import transform
-from writer.writer import write
-from data_validation.data_validation import check_automata
-from visualization.visualization import visualize
-from apply_operations.apply_operations import apply_operations
+from src.reader.reader import read
+from src.check_word.check_word import check
+from src.minimize.minimize import minimize
+from src.automata import Automata
+from src.transform.transform import to_dfa
+from src.writer.writer import write
+from src.data_validation.data_validation import validate
+from src.visualization.visualization import visualize
+from src.apply_operations.apply_operations import apply_operations
 
 
 def check_args(args):
@@ -30,8 +30,8 @@ def read_automata(dict_automata, *args):
     if check_args(args):
         try:
             data = read(*args)
-            data_status = check_automata(data)
-            if data_status:
+            data_status = validate(data)
+            if not data_status:
                 save_automata(dict_automata, data)
                 print("Read automata successfully")
             else:
@@ -67,7 +67,7 @@ def execute_command(dict_automata, *args):
                         else:
                             print(f"Can't minimize NFA. Please, transform it first to the DFA.")
                     elif command == "transform":
-                        dict_automata[automata_name] = transform(automata)
+                        dict_automata[automata_name] = to_dfa(automata)
                         print("Transformed automata successfully")
                     elif command == "visualize":
                         visualize(automata)

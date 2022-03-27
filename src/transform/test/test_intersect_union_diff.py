@@ -1,16 +1,21 @@
 import unittest
-from src.automata import Automata
 import src.reader.reader as automata_reader
 from src.check_word.check_word import check
-from src.transform.diff import diff
-from src.transform.intersect_or_union import intersect_or_union
+from src.transform.transform import intersect_or_union, diff
+from src.main import save_automata
 
 
 class TestIntersectUnionDiff(unittest.TestCase):
     def setUp(self) -> None:
-        self.nfa = Automata(automata_reader.read('src/examples/nfa1.txt'))
-        self.dfa = Automata(automata_reader.read('src/examples/dfa1.txt'))
-        self.dfa2 = Automata(automata_reader.read('src/examples/dfa2.txt'))
+        self.automatons = {}
+        save_automata(
+            self.automatons,
+            automata_reader.read('src/test_data/test_data.json')
+        )
+
+        self.nfa = self.automatons['nfa']
+        self.dfa = self.automatons['dfa']
+        self.dfa2 = self.automatons['dfa2']
 
     def test_intersect(self):
         automata = intersect_or_union(self.nfa, self.dfa)
@@ -28,4 +33,3 @@ class TestIntersectUnionDiff(unittest.TestCase):
         self.assertTrue(check(self.dfa2, "1010"))
         automata = diff(automata, self.dfa2)
         self.assertFalse(check(automata, "1010"))
-

@@ -1,15 +1,21 @@
 import unittest
-from src.automata import Automata
-import src.reader.reader as automataReader
+from src.main import save_automata
+import src.reader.reader as automata_reader
 from src.transform.transform import \
     __get_achievable_states as get_achievable_states, \
-    transform
+    to_dfa
 
 
 class TestTransform(unittest.TestCase):
     def setUp(self) -> None:
-        self.nfa = Automata(automataReader.read('src/examples/nfa1.txt'))
-        self.dfa = Automata(automataReader.read('src/examples/dfa1.txt'))
+        self.automatons = {}
+        save_automata(
+            self.automatons,
+            automata_reader.read('src/test_data/test_data.json')
+        )
+
+        self.dfa = self.automatons['dfa']
+        self.nfa = self.automatons['nfa']
 
     def test_achievable_states(self):
         self.assertEqual(['C', 'E'], sorted(get_achievable_states(self.nfa)))
@@ -18,8 +24,8 @@ class TestTransform(unittest.TestCase):
             sorted(get_achievable_states(self.dfa))
         )
 
-    def test_transform(self):
-        dfa_ = transform(self.nfa)
+    def test_to_dfa(self):
+        dfa_ = to_dfa(self.nfa)
         self.assertTrue(dfa_.is_dfa)
 
         for v in dfa_.edges_epsilon.values():
