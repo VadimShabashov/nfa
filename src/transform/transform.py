@@ -1,10 +1,93 @@
 from copy import deepcopy
 from collections import deque
+import itertools
 from typing import Dict, FrozenSet, List, Set, Tuple
 from src.automata import Automata
+from src.minimize.minimize import minimize
 
 
-def transform(automata: Automata) -> Automata:
+def concat(left: Automata, right: Automata) -> Automata:
+    raise NotImplementedError()
+
+
+def star(a: Automata) -> Automata:
+    raise NotImplementedError()
+
+
+def diff(left: Automata, right: Automata) -> Automata:
+    hell_state = '⊥'
+    right.states.append(hell_state)
+    right.edges[hell_state] = []
+    new_terminal_states = [
+        state
+        for state
+        in right.states
+        if state not in right.terminal_states
+    ]
+    right.terminal_states = new_terminal_states
+    for key in right.edges.keys():
+        letters = [
+            letter
+            for letter
+            in right.glossary
+            if letter not in (map(lambda edge: edge[1], right.edges[key]))
+        ]
+        for letter in letters:
+            right.edges[key].append([hell_state, letter])
+    return intersect_or_union(left, right)
+
+
+def intersect_or_union(left: Automata, right: Automata, union: bool = False)\
+        -> Automata:
+    if left.glossary != right.glossary:
+        print("Glossaries of automatas are not equals")
+        return left
+
+    left = left if left.is_dfa else to_dfa(left)
+    right = right if right.is_dfa else to_dfa(right)
+
+    states = []
+    terminal_states = []
+    edges = {}
+
+    for (left_state, right_state) in \
+            itertools.product(left.states, right.states):
+        state = left_state + right_state
+        states.append(state)
+        left_in_terminal = left_state in left.terminal_states
+        right_in_terminal = right_state in right.terminal_states
+
+        if (
+            (union and (left_in_terminal or right_in_terminal))
+            or (left_in_terminal and right_in_terminal)
+        ):
+            terminal_states.append(state)
+
+        edges[state] = [
+            [left_edge_state + right_edge_state, left_edge_letter]
+            for (
+                (left_edge_state, left_edge_letter),
+                (right_edge_state, right_edge_letter)
+            )
+            in itertools.product(
+                left.edges[left_state],
+                right.edges[right_state]
+            )
+            if left_edge_letter == right_edge_letter
+        ]
+
+    return minimize(Automata({
+        'glossary': left.glossary,
+        'states': states,
+        'initial_state': left.initial_state + right.initial_state,
+        'terminal_states': terminal_states,
+        'is_dfa': True,
+        'edges': edges,
+        'edges_epsilon': {}
+    }))
+
+
+def to_dfa(automata: Automata) -> Automata:
     without_epsilon = __remove_epsilon_edges(automata)
     raw_new_sigma: Dict[FrozenSet[str], List[Tuple[FrozenSet[str], str]]] = {}
     raw_new_states: Set[FrozenSet[str]] = set([

@@ -1,11 +1,11 @@
 from src.automata import Automata
-from src.transform.transform import transform
+from src.transform.transform import to_dfa
 
 
 def check(automata: Automata, word) -> bool:
     # для проверки слова будем использовать детерменированный автомат
     # если дали недетерменированный, сделаем трансформацию
-    dfa = transform(automata) if not automata.is_dfa else automata
+    dfa = to_dfa(automata) if not automata.is_dfa else automata
 
     state = dfa.initial_state
 
