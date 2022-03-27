@@ -52,7 +52,8 @@ def __automata_structure_validator() -> Validator[Dict[str, Any]]:
             return Result.ok(None)
         else:
             return Result.error(
-                f"Wrong fields in data: unknown fields {extra_keys}, "
+                "Wrong fields in data: unknown fields "
+                f"{extra_keys if len(extra_keys) > 0 else '{}'}, "
                 f"missing fields {missed_keys}"
             )
 

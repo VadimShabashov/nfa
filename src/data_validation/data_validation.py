@@ -1,43 +1,32 @@
 from functools import reduce
-from typing import Dict, Any, Set
+from typing import Dict, Any, Optional
 from src.data_validation.single_automata_validator import automata_validator
 from src.data_validation.types.Result import Result
 from src.data_validation.types.Validator import \
     Validator, all_of, combine_results, sequential
+import networkx as nx
 
 KEYWORDS = {'union', 'concat', 'diff', 'intersect', 'star'}
 
 
-def __dependency_graph(data: Dict[str, Any]) -> Dict[str, Set[str]]:
+def __dependency_graph(data: Dict[str, Any]) -> nx.DiGraph:
     '''
     Строит граф зависимостей по файлу с автоматами
     '''
-    g = {name: set() for name in data.keys()}
+    edges = []
 
     for name, value in data.items():
         if isinstance(value, list):
             for e in value:
                 if isinstance(e, str) and e not in KEYWORDS:
-                    g[name].add(e)
+                    edges.append((name, e))
 
-    return g
+    return nx.DiGraph(edges)
 
 
-def __has_cyclic_dependency(
-    from_: str,
-    visited: Set[str],
-    g: Dict[str, Set[str]]
-) -> bool:
-    '''
-    Реализация DFS проверяющая наличие циклов в графе
-    '''
-    visited.add(from_)
-
-    for n in g[from_]:
-        if n in visited:
-            return True
-        else:
-            return __has_cyclic_dependency(n, visited, g)
+def __has_cyclic_dependency(g: nx.DiGraph) -> bool:
+    for _ in nx.simple_cycles(g):
+        return True
 
     return False
 
@@ -106,24 +95,47 @@ def __string_tokens_in_correct_sequence_validator() \
 
         for value in data.values():
             if isinstance(value, list):
+                # Начинается с ключевого слова
                 if isinstance(value[0], str) and value[0] in KEYWORDS:
                     errors.append(f'Sequence cannot starts with {value[0]}')
 
+                # Заканчивается ключевым словом
                 if isinstance(value[-1], str) and value[-1] in KEYWORDS:
                     errors.append(f'Sequence cannot ends with {value[0]}')
 
                 for idx in range(len(value) - 1):
                     if (
-                        isinstance(value[idx], str)
-                        and isinstance(value[idx + 1], str)
-                        and ((
-                                value[idx] in KEYWORDS
-                                and value[idx + 1] in KEYWORDS
-                            )
-                            or (
-                                value[idx] in automata_names
-                                and value[idx + 1] in automata_names
-                        ))
+                        # Два ключевых слова подряд
+                        (
+                            isinstance(value[idx], str)
+                            and isinstance(value[idx + 1], str)
+                            and value[idx] in KEYWORDS
+                            and value[idx + 1] in KEYWORDS
+                        )
+                        # Два имени автомата подряд
+                        or (
+                            isinstance(value[idx], str)
+                            and isinstance(value[idx + 1], str)
+                            and value[idx] in automata_names
+                            and value[idx + 1] in automata_names
+                        )
+                        # Два анонимных автомата подряд
+                        or (
+                            isinstance(value[idx], dict)
+                            and isinstance(value[idx + 1], dict)
+                        )
+                        # Имя автомата, а потом анонимный автомат
+                        or (
+                            isinstance(value[idx], dict)
+                            and isinstance(value[idx + 1], str)
+                            and value[idx + 1] in automata_names
+                        )
+                        # Анонимный автомат, а затем имя автомата
+                        or (
+                            isinstance(value[idx], str)
+                            and isinstance(value[idx + 1], dict)
+                            and value[idx] in automata_names
+                        )
                     ):
                         errors.append(
                             f'{value[idx]} and {value[idx + 1]} '
@@ -140,17 +152,9 @@ def __no_cyclic_dependencies_validator() -> Validator[Dict[str, any]]:
     Проверяет отсутствие циклических зависимостей между автоматами
     '''
     def inner(data: Dict[str, Any]) -> Result[None, str]:
-        g = __dependency_graph(data)
-        visited = set()
-
-        for v in g.keys():
-            if v not in visited:
-                r = __has_cyclic_dependency(v, visited, g)
-
-                if r:
-                    return Result.error('Cyclic dependency found')
-
-        return Result.ok(None)
+        return Result.ok(None) \
+            if not __has_cyclic_dependency(__dependency_graph(data)) \
+            else Result.error('Cycle dependency found')
 
     return Validator(inner)
 
@@ -169,7 +173,7 @@ def __automata_object_validator() -> Validator[Dict[str, Any]]:
     ])
 
 
-def validate(data: Dict[str, Any]) -> None | str:
+def validate(data: Dict[str, Any]) -> Optional[str]:
     '''
     Запускает валидации на полученном объекте
     и возвращает None или сообщение об ошибке

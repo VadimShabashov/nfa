@@ -42,7 +42,11 @@
 				"E": []
 			}
 		},
-		"union",
-		"name"
-	]
+        "union",
+		"name",
+        "name3",
+        "intersect",
+        "name4"
+	],
+    "name3": {}
 }
