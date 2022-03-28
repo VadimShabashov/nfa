@@ -7,11 +7,44 @@ from src.minimize.minimize import minimize
 
 
 def concat(left: Automata, right: Automata) -> Automata:
+    """
+    this method is not completed yet
+    """
+    # if left.glossary != right.glossary:
+    #     print("Glossaries of automatas are not equal")
+    #     return left
+    #
+    # new_initial_state = left.initial_state
+    # new_terminal_states = right.terminal_states
+    # new_states = left.states.extend(right.states)
+    #
+    #
+    # for k, v in left.edges.items():
+    #     for i in v:
     raise NotImplementedError()
+
 
 
 def star(a: Automata) -> Automata:
-    raise NotImplementedError()
+    new_initial_state = "Q1'"
+    new_states = a.states.append(new_initial_state)
+    new_edges = a.edges
+    new_terminal_states = a.terminal_states.append(new_initial_state)
+
+    for k, v in new_edges.items():
+        if k in a.states:
+            for i in v:
+                if i[0] in a.terminal_states:
+                    v.append([a.initial_state, i[1]])
+
+    new_edges[new_initial_state] = edges[a.initial_state]
+
+    a.initial_state = new_initial_state
+    a.states = new_states
+    a.terminal_states = new_terminal_states
+    a.edges = new_edges
+
+    return a
 
 
 def diff(left: Automata, right: Automata) -> Automata:
