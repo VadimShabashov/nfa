@@ -46,7 +46,7 @@ exit
 
 * Vlad: checking of the word/diff/union/intersect
 
-* Elisey: minimization of dfa/Kleene star/concat
+* Elisey: minimization of dfa/Kleene star/concat (not yet)
 
 
 ## Things to improve:
