@@ -40,13 +40,13 @@ exit
 
 ## Our awesome team:
 
-* Vadim: reading/writing/visualization/data validation/linking code/CLI
+* Vadim: `reading/writing/visualization/data validation/linking code/CLI`
 
-* Fedor: transformation from nfa to dfa/data validation
+* Fedor: `transformation from nfa to dfa/data validation`
 
-* Vlad: checking of the word/diff/union/intersect
+* Vlad: `checking of the word/diff/union/intersect`
 
-* Elisey: minimization of dfa/Kleene star/concat (not yet)
+* Elisey: `minimization of dfa/Kleene star/concat`
 
 
 ## Things to improve:
