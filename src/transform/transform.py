@@ -7,6 +7,8 @@ from src.minimize.minimize import minimize
 
 
 def concat(left: Automata, right: Automata) -> Automata:
+    left = deepcopy(left)
+    right = deepcopy(right)
 
     if left.glossary != right.glossary:
         print("Glossaries of automatas are not equal")
@@ -16,29 +18,31 @@ def concat(left: Automata, right: Automata) -> Automata:
     right.states = [i + "2" for i in right.states]
     left.initial_state = left.initial_state + "1"
     right.initial_state = right.initial_state + "2"
-    left.terminal_states = [i + "1" for i in left.states]
-    right.terminal_states = [i + "2" for i in right.states]
+    left.terminal_states = [i + "1" for i in left.terminal_states]
+    right.terminal_states = [i + "2" for i in right.terminal_states]
+
+    left.edges = {k + "1" : v for k, v in left.edges.items()}
+    right.edges = {k + "2" : v for k, v in right.edges.items()}
 
     for k, v in left.edges.items():
-        k = k + "1"
         for i in v:
             i[0] = i[0] + "1"
 
     for k, v in right.edges.items():
-        k = k + "2"
         for i in v:
             i[0] = i[0] + "2"
 
     new_initial_state = left.initial_state
     new_terminal_states = right.terminal_states
-    new_states = left.states.extend(right.states)
+    left.states.extend(right.states)
+    new_states = left.states
     new_edges = left.edges
 
     for k, v in new_edges.items():
         if k in left.states:
             for i in v:
                 if i[0] in left.terminal_states:
-                    new_edges[k].append(right.initial_state, i[1])
+                    new_edges[k].append([right.initial_state, i[1]])
 
     for k, v in right.edges.items():
         if k in right.states:
@@ -49,8 +53,7 @@ def concat(left: Automata, right: Automata) -> Automata:
     for state in left.terminal_states:
        new_edges_epsilon[state] = [right.initial_state]
 
-
-    return Automata({
+    a = Automata({
         'glossary': left.glossary,
         'states': new_states,
         'initial_state': new_initial_state,
@@ -59,6 +62,8 @@ def concat(left: Automata, right: Automata) -> Automata:
         'edges': new_edges,
         'edges_epsilon': new_edges_epsilon
     })
+
+    return a
 
 def star(a: Automata) -> Automata:
     new_initial_state = a.initial_state + "'"
