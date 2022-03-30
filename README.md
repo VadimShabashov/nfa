@@ -16,11 +16,13 @@ The application starts by using command `PYTHONPATH='.' python3 src/main.py` fro
 
 6. Minimize automata (valid only for DFA): `minimize automata_name`
 
-7. Clear all automata from memory: `clear`
+7. Apply operation on automata and store in another automata: `new_automata_name = automata_name1 operation automata_name2`, where `operation` is `union`, `concat`, `diff`, `star`, `intersect`
 
-8. Show names of stored automata: `display_names`
+8. Clear all automata from memory: `clear`
 
-9. Exiting from application: `exit`
+9. Show names of stored automata: `display_names`
+
+10. Exiting from application: `exit`
 
 
 ## Example of work:
