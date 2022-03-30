@@ -42,3 +42,5 @@ class TestStarConcat(unittest.TestCase):
                                           'E1': [['C1', '0'], ['A2', '0']],
                                           'A2': [['B2', '1']],
                                           'B2': [['A2', '0']]})
+        self.assertEqual(concat_a.edges_epsilon, {'B1': ['A2'], 'C1': ['A2']})
+        
