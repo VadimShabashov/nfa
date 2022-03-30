@@ -7,29 +7,69 @@ from src.minimize.minimize import minimize
 
 
 def concat(left: Automata, right: Automata) -> Automata:
-    """
-    this method is not completed yet
-    """
-    # if left.glossary != right.glossary:
-    #     print("Glossaries of automatas are not equal")
-    #     return left
-    #
-    # new_initial_state = left.initial_state
-    # new_terminal_states = right.terminal_states
-    # new_states = left.states.extend(right.states)
-    #
-    #
-    # for k, v in left.edges.items():
-    #     for i in v:
-    raise NotImplementedError()
+
+    if left.glossary != right.glossary:
+        print("Glossaries of automatas are not equal")
+        return left
+
+    left.states = [i + "1" for i in left.states]
+    right.states = [i + "2" for i in right.states]
+    left.initial_state = left.initial_state + "1"
+    right.initial_state = right.initial_state + "2"
+    left.terminal_states = [i + "1" for i in left.states]
+    right.terminal_states = [i + "2" for i in right.states]
+
+    for k, v in left.edges.items():
+        k = k + "1"
+        for i in v:
+            i[0] = i[0] + "1"
+
+    for k, v in right.edges.items():
+        k = k + "2"
+        for i in v:
+            i[0] = i[0] + "2"
+
+    new_initial_state = left.initial_state
+    new_terminal_states = right.terminal_states
+    new_states = left.states.extend(right.states)
+    new_edges = left.edges
+
+    for k, v in new_edges.items():
+        if k in left.states:
+            for i in v:
+                if i[0] in left.terminal_states:
+                    new_edges[k].append(right.initial_state, i[1])
+
+    for k, v in right.edges.items():
+        if k in right.states:
+            new_edges[k] = v
+
+    new_edges_epsilon = {}
+
+    for state in left.terminal_states:
+       new_edges_epsilon[state] = [right.initial_state]
 
 
+    return Automata({
+        'glossary': left.glossary,
+        'states': new_states,
+        'initial_state': new_initial_state,
+        'terminal_states': new_terminal_states,
+        'is_dfa': False,
+        'edges': new_edges,
+        'edges_epsilon': new_edges_epsilon
+    })
 
 def star(a: Automata) -> Automata:
-    new_initial_state = "Q1'"
-    new_states = a.states.append(new_initial_state)
+    new_initial_state = a.initial_state + "'"
+    if new_initial_state in a.states:
+        new_initial_state = a.initial_state + "_0"
+
     new_edges = a.edges
-    new_terminal_states = a.terminal_states.append(new_initial_state)
+    a.terminal_states.append(new_initial_state)
+    new_terminal_states = a.terminal_states
+    a.states.append(new_initial_state)
+    new_states = a.states
 
     for k, v in new_edges.items():
         if k in a.states:
@@ -37,7 +77,7 @@ def star(a: Automata) -> Automata:
                 if i[0] in a.terminal_states:
                     v.append([a.initial_state, i[1]])
 
-    new_edges[new_initial_state] = edges[a.initial_state]
+    new_edges[new_initial_state] = new_edges[a.initial_state]
 
     a.initial_state = new_initial_state
     a.states = new_states
