@@ -45,26 +45,29 @@ def visualize(automata):
     # Розовый - остальные состояния
     initial_state_pos = node_list.index(initial_state)
     terminal_states_pos = [ind for ind, state in enumerate(node_list) if state in terminal_states]
-    node_color = [1 if ind == initial_state_pos else
-                  0.7 if ind in terminal_states_pos else
-                  0.4 for ind in range(len(node_list))]
+    node_color = ['cyan' if (ind == initial_state_pos) and (ind in terminal_states_pos) else
+                  'yellow' if (ind == initial_state_pos) else
+                  'orange' if ind in terminal_states_pos else
+                  'magenta' for ind in range(len(node_list))]
 
     # Изгиб ребер
     rad = 0.2
 
     nx.draw_networkx(graph, pos=pos, nodelist=node_list, node_color=node_color,
-                     cmap=plt.get_cmap('spring'), connectionstyle=f'arc3, rad = {rad}')
+                     connectionstyle=f'arc3, rad = {rad}')
 
     # Модифицированная функция добавления названий к искривленным дугам.
     modified_draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_names, rad=rad)
 
     # Легенда
-    legend_elements = [Line2D([0], [0], marker='o', color='green', label='Желтый - начальное состояние',
-                              markerfacecolor='yellow', markersize=13),
-                       Line2D([0], [0], marker='o', color='green', label='Красный - терминальное состояние',
-                              markerfacecolor='red', markersize=13),
-                       Line2D([0], [0], marker='o', color='green', label='Розовый - остальные состояния',
-                              markerfacecolor='magenta', markersize=13)]
+    legend_elements = [Line2D([0], [0], marker='o', label='Начальное + терминальное',
+                              markerfacecolor='cyan', markeredgecolor='black', markersize=13),
+                       Line2D([0], [0], marker='o', label='Начальное состояние',
+                              markerfacecolor='yellow', markeredgecolor='black', markersize=13),
+                       Line2D([0], [0], marker='o', label='Терминальное состояние',
+                              markerfacecolor='orange', markeredgecolor='black', markersize=13),
+                       Line2D([0], [0], marker='o', label='Остальные состояния',
+                              markerfacecolor='magenta', markeredgecolor='black', markersize=13)]
     plt.legend(handles=legend_elements)
 
     plt.show()
