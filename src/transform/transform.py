@@ -65,7 +65,10 @@ def concat(left: Automata, right: Automata) -> Automata:
 
     return a
 
+
 def star(a: Automata) -> Automata:
+    a = deepcopy(a)
+
     new_initial_state = a.initial_state + "'"
     if new_initial_state in a.states:
         new_initial_state = a.initial_state + "_0"

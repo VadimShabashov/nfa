@@ -27,7 +27,7 @@ def apply_operations(dict_automata, automata_name, pipeline):
             elif pipeline[1] in dict_automata:
                 dict_automata[automata_name] = star(dict_automata[pipeline[1]])
             else:
-                print(f"Unknown automata '{pipeline[0]}")
+                print(f"Unknown automata '{pipeline[1]}")
                 return False
 
     elif len(pipeline) == 3:
