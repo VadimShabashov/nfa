@@ -96,6 +96,8 @@ def diff(left: Automata, right: Automata) -> Automata:
     hell_state = '⊥'
     right.states.append(hell_state)
     right.edges[hell_state] = []
+    if not right.is_dfa:
+        right.edges_epsilon[hell_state] = []
     new_terminal_states = [
         state
         for state

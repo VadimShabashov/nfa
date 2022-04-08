@@ -33,3 +33,9 @@ class TestIntersectUnionDiff(unittest.TestCase):
         self.assertTrue(check(self.dfa2, "1010"))
         automata = diff(automata, self.dfa2)
         self.assertFalse(check(automata, "1010"))
+
+    def test_diff_with_the_same(self):
+        automata = self.nfa
+        self.assertTrue(check(automata, "1010"))
+        automata = diff(automata, self.nfa)
+        self.assertFalse(check(automata, "1010"))
