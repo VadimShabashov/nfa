@@ -35,6 +35,21 @@
 			"B": []
 		}
 	},
+	"dfa3": {
+		"glossary": ["0", "1"],
+		"states": ["A", "B"],
+		"initial_state": "A",
+		"terminal_states": ["B"],
+		"is_dfa": true,
+		"edges": {
+			"A": [["B", "0"]],
+			"B": [["A", "1"]]
+		},
+		"edges_epsilon": {
+			"A": [],
+			"B": []
+		}
+	},
 	"nfa": {
 		"glossary": ["0", "1"],
 		"states": ["A", "B", "C", "D", "E"],

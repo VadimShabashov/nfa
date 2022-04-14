@@ -16,6 +16,7 @@ class TestIntersectUnionDiff(unittest.TestCase):
         self.nfa = self.automatons['nfa']
         self.dfa = self.automatons['dfa']
         self.dfa2 = self.automatons['dfa2']
+        self.dfa3 = self.automatons['dfa3']
 
     def test_intersect(self):
         automata = intersect_or_union(self.nfa, self.dfa)

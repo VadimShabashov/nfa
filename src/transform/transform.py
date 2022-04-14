@@ -95,7 +95,10 @@ def star(a: Automata) -> Automata:
     return a
 
 
-def diff(left: Automata, right: Automata) -> Automata:
+def diff(p_left: Automata, p_right: Automata) -> Automata:
+    left = p_left.clone()
+    right = p_right.clone()
+
     hell_state = '⊥'
     right.states.append(hell_state)
     right.edges[hell_state] = []

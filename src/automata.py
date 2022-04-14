@@ -1,4 +1,5 @@
 from typing import Dict, List
+import copy
 
 
 class Automata:
@@ -21,3 +22,14 @@ class Automata:
             f'  "edges_epsilon": {repr(self.edges_epsilon)},\n' \
             f'  "is_dfa": {repr(self.is_dfa)}\n' \
             '})'
+
+    def clone(self):
+        return Automata({
+            'glossary': self.glossary,
+            'states': self.states.copy(),
+            'initial_state': self.initial_state,
+            'terminal_states': self.terminal_states.copy(),
+            'edges': copy.deepcopy(self.edges),
+            'edges_epsilon': copy.deepcopy(self.edges_epsilon),
+            'is_dfa': self.is_dfa,
+        })
